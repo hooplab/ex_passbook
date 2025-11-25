@@ -190,7 +190,8 @@ defmodule Passbook do
     default = [
       target_path: get_tmp_dir(),
       pass_name: :crypto.strong_rand_bytes(16) |> Base.encode16(),
-      delete_raw_pass: true
+      delete_raw_pass: true,
+      return_bytes: true
     ]
 
     opts = Keyword.merge(default, opts)
@@ -216,6 +217,13 @@ defmodule Passbook do
            ),
          :ok <- copy_pass_files(files, target_path),
          {:ok, pkpass} <- create_pkpass(target_path, opts) do
+      pkpass =
+        if opts[:return_bytes] do
+          File.read!(pkpass)
+        else
+          pkpass
+        end
+
       if opts[:delete_raw_pass] do
         cleanup_raw_files(target_path)
       end
